@@ -1,4 +1,4 @@
-.login {
+.auth {
     width: calc(100% - 461px*2);
     margin: 15px auto 112px;
     display: flex;

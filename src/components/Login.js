@@ -1,13 +1,55 @@
-const Login = () =>{
+import {useState} from "react";
+import InfoToolTip from "./InfoToolTip";
+
+const Login = ({onLogin, isCorrectly, isOpen, onClose}) =>{
+    const initValues = {
+        email: '',
+        password: '',
+    }
+
+    const [state, setState] = useState(initValues)
+
+    const handleChange = e => {
+        const {name, value} = e.target;
+
+        setState(old => ({
+            ...old,
+            [name]: value,
+        }))
+    }
+
+    const handleSubmit = e => {
+        e.preventDefault();
+
+        const {password, email} = state;
+
+        if (!password || !email) return;
+
+        onLogin(password, email)
+            .then(() => {
+                setState(initValues)
+            })
+            .catch(err => {
+                console.log(err);
+
+                setState(old => ({
+                    ...old
+                }))
+            });
+    }
+
     return (
-        <div className="login">
-            <h1 className="login__title">Вход</h1>
-            <form className="login__form">
-                <input className="login__email" type="email" placeholder="Email"/>
-                <input className="login__pass" type="password" placeholder="Пароль"/>
-                <button className="login__submit" type="submit">Войти</button>
-            </form>
-        </div>
+        <>
+            <div className="auth">
+                <h1 className="auth__title">Вход</h1>
+                <form className="auth__form">
+                    <input name='email' className="auth__input" type="email" placeholder="Email" value={state.email} onChange={handleChange}/>
+                    <input name='password' className="auth__input" type="password" placeholder="Пароль" value={state.password} onChange={handleChange}/>
+                    <button className="auth__submit" type="submit" onClick={handleSubmit}>Войти</button>
+                </form>
+            </div>
+            <InfoToolTip isCorrectly={isCorrectly} isOpen={isOpen} onClose={onClose}/>
+        </>
     )
 }
 

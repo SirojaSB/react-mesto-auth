@@ -10,15 +10,80 @@ import CurrentUserContext from "../contexts/CurrentUserContext.js";
 import EditAvatarPopup from "./EditAvatarPopup";
 import AddPlacePopup from "./AddPlacePopup";
 import Login from "./Login";
+import Register from "./Register";
+import {register, authorize, validateToken} from "../utils/auth";
+import {Route, Routes, useNavigate} from "react-router-dom";
+import ProtectedRoute from "./ProtectedRoute";
 
 function App() {
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = useState(false);
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = useState(false);
   const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = useState(false);
+  const [isInfoToolTipOpen, setIsInfoTooltipOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState({});
   const [isImageOpen, setIsImageOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState({});
   const [cards, setCards] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isCorrectly, setIsCorrectly] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const navigate = useNavigate()
+
+  const handleRegister = async (password, email) => {
+      try {
+          await register(password, email);
+          setIsCorrectly(true);
+          setIsInfoTooltipOpen(true);
+      } catch (err) {
+          console.log(err);
+          setIsCorrectly(false);
+          setIsInfoTooltipOpen(true);
+      }
+  }
+
+  useEffect(() => {
+      if(!isLoggedIn) return;
+
+      navigate('/')
+  }, [isLoggedIn])
+
+  const handleLogin = async (password, email) => {
+      try {
+          const { token } = await authorize(password, email);
+          const { data } = await validateToken(token);
+          setUserEmail(data.email);
+          setIsLoggedIn(true);
+          localStorage.setItem('jwt', token);
+      } catch (err) {
+          console.log(err);
+          setIsCorrectly(false);
+          setIsInfoTooltipOpen(true);
+      }
+  }
+
+  const checkToken = async () => {
+      const token = localStorage.getItem('jwt');
+      if (token) {
+          try {
+              const { data } = await validateToken(token);
+              setUserEmail(data.email);
+              setIsLoggedIn(true);
+          } catch (err) {
+              console.log(err);
+              setIsLoggedIn(false);
+          }
+      }
+  }
+
+  useEffect(() => {
+      checkToken()
+  }, [])
+
+  const handleLogout = () => {
+      localStorage.removeItem('jwt');
+      setUserEmail('');
+      navigate('/sign-in');
+  }
 
   const getCardsInfo = async () =>{
         try{
@@ -74,6 +139,7 @@ function App() {
       setIsAddPlacePopupOpen(false);
       setIsEditAvatarPopupOpen(false);
       setIsImageOpen(false);
+      setIsInfoTooltipOpen(false);
   }
 
   const handleEditAvatarClick = () => {
@@ -129,16 +195,29 @@ function App() {
   return (
       <CurrentUserContext.Provider value={currentUser}>
           <div className="page">
-            <Header/>
-            <Main
-                onAddPlace={handleAddPlaceClick}
-                onEditProfile={handleEditProfileClick}
-                onEditAvatar={handleEditAvatarClick}
-                onCardClick={handleCardClick}
-                cards={cards}
-                handleCardLike={handleCardLike}
-                handleCardDelete={handleCardDelete}/>
-            <Login/>
+            <Header onLogout={handleLogout} email={userEmail}/>
+            <Routes>
+                <Route path="/" element={<ProtectedRoute
+                    isLoggedIn={isLoggedIn}
+                    onAddPlace={handleAddPlaceClick}
+                    onEditProfile={handleEditProfileClick}
+                    onEditAvatar={handleEditAvatarClick}
+                    onCardClick={handleCardClick}
+                    cards={cards}
+                    handleCardLike={handleCardLike}
+                    handleCardDelete={handleCardDelete}
+                    Component={Main}/>}/>
+                <Route path="/sign-in" element={<Login
+                    onLogin={handleLogin}
+                    isOpen={isInfoToolTipOpen}
+                    onClose={closeAllPopups}
+                    isCorrectly={isCorrectly}/>}/>
+                <Route path="/sign-up" element={<Register
+                    onRegister={handleRegister}
+                    isOpen={isInfoToolTipOpen}
+                    onClose={closeAllPopups}
+                    isCorrectly={isCorrectly}/>}/>
+            </Routes>
             <Footer/>
             <AddPlacePopup
               isOpen={isAddPlacePopupOpen}

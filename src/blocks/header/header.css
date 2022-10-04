@@ -2,6 +2,8 @@
     width: calc(100% - 200px*2);
     margin: 40px auto 45px;
     border-bottom: 1px solid rgba(84, 84, 84, .7);
+    display: flex;
+    justify-content: space-between;
 }
 
 @media screen and (max-width: 1079px) {
