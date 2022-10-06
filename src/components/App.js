@@ -5,7 +5,7 @@ import Footer from "./Footer.js";
 import PopupWithForm from "./PopupWithForm.js";
 import EditProfilePopup from "./EditProfilePopup";
 import ImagePopup from "./ImagePopup.js";
-import {api} from "../utils/Api";
+import {api} from "../utils/api";
 import CurrentUserContext from "../contexts/CurrentUserContext.js";
 import EditAvatarPopup from "./EditAvatarPopup";
 import AddPlacePopup from "./AddPlacePopup";
@@ -96,8 +96,11 @@ function App() {
   }
 
   useEffect(()=>{
-        getCardsInfo()
-  }, [])
+        if(!isLoggedIn) return;
+
+        getCardsInfo();
+        getFullUserInfo();
+  }, [isLoggedIn])
 
   const handleCardLike = async (card) => {
       try {
@@ -129,10 +132,6 @@ function App() {
             console.log(err)
         }
   }
-
-  useEffect(()=>{
-      getFullUserInfo();
-  }, [])
 
   const closeAllPopups = () => {
       setIsEditProfilePopupOpen(false);
