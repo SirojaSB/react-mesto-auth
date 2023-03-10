@@ -1,4 +1,6 @@
-# Проект: React-mesto-auth Russia
+# Проект: React-mesto-auth
+
+deployment: https://react-mesto-auth-beta.vercel.app
 
 ## Обзор
 
